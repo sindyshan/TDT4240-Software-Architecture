@@ -1,0 +1,4 @@
+progark.mygdx.game.test.android-androidTest-0 /Users/Shan/ColorMystery/android/build/generated/res/resValues/androidTest/debug
+progark.mygdx.game.test.android-mergeDebugAndroidTestResources-1 /Users/Shan/ColorMystery/android/build/intermediates/incremental/debugAndroidTest/mergeDebugAndroidTestResources/merged.dir
+progark.mygdx.game.test.android-mergeDebugAndroidTestResources-2 /Users/Shan/ColorMystery/android/build/intermediates/incremental/debugAndroidTest/mergeDebugAndroidTestResources/stripped.dir
+progark.mygdx.game.test.android-debugAndroidTest-3 /Users/Shan/ColorMystery/android/build/intermediates/merged_res/debugAndroidTest/mergeDebugAndroidTestResources

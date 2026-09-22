@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "86771306655",
+    "project_id": "colormystery-ac885",
+    "storage_bucket": "colormystery-ac885.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:86771306655:android:4e3dea9ed618773d63d2aa",
+        "android_client_info": {
+          "package_name": "progark.mygdx.game"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyB9q-spEzlQmqrPl4Uj1GQBLqnTNmcRikw"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

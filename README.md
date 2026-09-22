@@ -1,10 +1,4 @@
-# TDT4240-Software-Architecture
-
 # ColorMystery
-
-ColorMystery is a game developed in the course TDT4240 Software Architecture at NTNU. The game is inspired by the classic Mastermind, where the player must guess a hidden color code through logical reasoning and feedback from previous attempts. The objective is to crack the code in as few tries as possible, combining strategy with trial and error.
-
-The project was developed using LibGDX with support for multiple platforms (desktop and Android). We worked with agile methods, focusing on solid software architecture, modular design, and teamwork. Through the project, we learned how to structure a codebase for maintainability and extensibility, as well as how to apply design patterns and architectural principles in practice.
 
 A [libGDX](https://libgdx.com/) project generated with [gdx-liftoff](https://github.com/libgdx/gdx-liftoff).
 

@@ -1,0 +1,317 @@
+package progark.mygdx.game.model;
+
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.List;
+import java.util.NoSuchElementException;
+import java.util.Objects;
+import java.util.stream.Collectors;
+import java.util.Random;
+
+import progark.mygdx.game.model.mode.EasyMode;
+import progark.mygdx.game.model.mode.Mode;
+import progark.mygdx.game.model.pegcombination.peg.CodePeg;
+import progark.mygdx.game.model.pegcombination.PegCombination;
+
+public class Game {
+    private List<DecodingBoard> decodingBoards;
+    private final Mode mode;
+    private PegCombination secretCode;
+    private final CodeGenerator codeGenerator;
+    private final CodeEvaluator codeEvaluator;
+    private List<String> availableColors;
+    private boolean singleplayer;
+    private final String pincode;
+    private String status; // "waiting", "in_progress", "finished"
+    private final Scoreboard localScoreboard;
+
+    public Game(Mode mode, boolean isHost) {
+        this.mode = mode;
+        this.availableColors = new ArrayList<>();
+        this.codeGenerator = new CodeGenerator(this);
+        this.codeEvaluator = new CodeEvaluator(this);
+        this.decodingBoards = new ArrayList<>();
+        this.pincode = generatePincode();
+        this.localScoreboard = new Scoreboard();
+        setStatus("waiting");
+
+        // Multiplayer if host is true (since only host creates the secret code)
+        this.singleplayer = !isHost;
+
+        if (isHost) {
+            this.secretCode = codeGenerator.generateCode();
+        }
+    }
+
+    /**
+     * @return the status of the game
+     */
+    public String getStatus() {
+        return status;
+    }
+
+    /**
+     * @param status
+     * sets the game's status to the inserted status
+     */
+    public void setStatus(String status) {
+        if(status.equals("waiting") || status.equals("in_progress") || status.equals( "finished")){
+            this.status = status;
+        }
+        else{
+            throw new IllegalArgumentException("Not a valid state");
+        }
+    }
+
+    /**
+     * @return boolean
+     * checks whether the game is over
+     */
+    public boolean isGameOver(){
+        return status.equals("finished");
+    }
+
+    /**
+     * @return all the decoding boards related to this game in an unmodifiable list (read-only)
+     */
+    public List<DecodingBoard> getDecodingBoards() {
+        return Collections.unmodifiableList(decodingBoards);
+    }
+
+    /**
+     * @param playerName the owner of the wanted the decoding board
+     * @return the decoding board of the player with the name equal to playerName
+     */
+    public DecodingBoard getPlayerDecodingBoard(String playerName) {
+        return getDecodingBoards().stream()
+            .filter(board -> board.getPlayer().getName().equals(playerName))
+            .findFirst()
+            .orElseThrow(() -> new NoSuchElementException("No decoding board found for player: " + playerName));
+
+    }
+
+
+    /**
+     * @param decodingBoard
+     * adds decoding board to the game
+     */
+    public void addDecodingBoard(DecodingBoard decodingBoard) {
+        this.decodingBoards.add(decodingBoard);
+    }
+    /**
+     * @return a generated random pincode.
+     */
+    public String generatePincode(){
+        Random random = new Random();
+        return String.format("%04d", random.nextInt(10000));
+    }
+
+    /**
+     * @return the mode of the game
+     */
+    public Mode getMode() {
+        return mode;
+    }
+
+    /**
+     * @return the pincode
+     */
+    public String getPin() {
+        return this.pincode;
+    }
+
+    /**
+     * @param isSingleplayer
+     * Sets multiplayer or singleplayer
+     */
+    public void setSingleplayer(boolean isSingleplayer){
+        this.singleplayer = isSingleplayer;
+    }
+
+    /**
+     * @return singleplayer or multiplayer
+     */
+    public boolean getSingleplayer(){
+        return this.singleplayer;
+    }
+    /**
+     * @return the secret code of the game
+     */
+    public PegCombination getSecretCode() {
+        return secretCode;
+    }
+
+    /**
+     * @return the code evaluator that evaluates the game
+     */
+    public CodeEvaluator getCodeEvaluator(){
+        return this.codeEvaluator;
+    }
+
+    /**
+     * @return a list of available colors (colors as string)
+     */
+    public List<String> getAvailableColors(){
+        return this.availableColors;
+    }
+
+    /**
+     * @param availableColors
+     * set the list of available colors to the given input
+     */
+    public void setAvailableColors(List<String> availableColors){
+        this.availableColors = availableColors;
+    }
+
+
+    /**
+     * @param colorNames A list of color names representing the secret code.
+     * Sets the secret code of the game
+     * This method is used in multiplayer games where the secret code is fetched
+     * from Firebase after being generated by the host.
+     */
+    public void setSecretCodeFromColors(List<String> colorNames) {
+        PegCombination code = new PegCombination(mode.getNumPegs());
+        for (int i = 0; i < colorNames.size(); i++) {
+            code.setPegPosition(new CodePeg(colorNames.get(i)), i);
+        }
+        this.secretCode = code;
+    }
+
+    /**
+     * @return a list of players of this game
+     */
+    public List<Player> getPlayers() {
+        return decodingBoards.stream()
+            .map(DecodingBoard::getPlayer)
+            .collect(Collectors.toList());
+    }
+
+    /**
+     * @return the names of the players of this game
+     */
+    public List<String> getPlayersName() {
+        return this.getPlayers().stream()
+            .map(Player::getName)
+            .collect(Collectors.toList());
+    }
+
+    /**
+     * @return the scoreboard of the players in this game (updated only when the game is finished)
+     */
+    public Scoreboard getLocalScoreboard() { return localScoreboard; }
+
+
+
+
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+        Game game = (Game) o;
+        return Objects.equals(decodingBoards, game.decodingBoards) && Objects.equals(mode, game.mode);
+    }
+
+    // You can simply remove this method if you're not using hash-based collections
+    @Override
+    public int hashCode() {
+        return super.hashCode();  // Default behavior from Object class
+    }
+
+
+    @Override
+    public String toString() {
+        return "Game{" +
+            "players=" + getPlayers() +
+            ", mode=" + (mode != null ? mode.toString() : "null") +
+            ", secret code=" + secretCode +
+            ", available colors=" + (availableColors != null ? availableColors.toString() : "null") +
+            ", decoding boards=" + (getDecodingBoards() != null ?
+            getDecodingBoards().stream()
+                .map(DecodingBoard::toString)
+                .collect(Collectors.joining(", "))
+            : "null") +
+            '}';
+    }
+
+
+    public static void main(String[] args) {
+        // Step 1: Initialize the game with a mode
+        Mode easy = new EasyMode();
+        Player player = new Player();
+        player.setName("Nath");
+
+        Game myGame = new Game(easy, true); // ✅ host mode
+
+        // Step 2: Verify the secret code generation
+        PegCombination secretCode = myGame.getSecretCode();
+        System.out.println("Secret Code Generated: " + secretCode);
+
+        // Step 3: Add a decoding board and check if it's stored correctly
+        DecodingBoard board = new DecodingBoard(myGame, player);
+        myGame.addDecodingBoard(board);
+        System.out.println("Decoding Boards: " + myGame.getDecodingBoards());
+
+        // Step 4: Verify that the game mode is set
+        System.out.println("Game Mode: " + myGame.getMode());
+
+        // Step 5: Perform a sample evaluation (assuming CodeEvaluator exists)
+        PegCombination guess = new PegCombination(easy.getNumPegs());
+        CodePeg peg1 = new CodePeg("pink");
+        CodePeg peg2 = new CodePeg("yellow");
+        CodePeg peg3 = new CodePeg("blue");
+        CodePeg peg4 = new CodePeg("pink");
+
+
+        //Create a code peg combination that will be the guess
+        guess.setPegPosition(peg1, 0);
+        guess.setPegPosition(peg2, 1);
+        guess.setPegPosition(peg3, 2);
+        guess.setPegPosition(peg4, 3);
+
+        // Example usage of codepeg.setColor() method
+        PegCombination guess2 = new PegCombination(easy.getNumPegs());
+        CodePeg peg12 = new CodePeg("pink");
+        peg12.setColor("red");
+        CodePeg peg22 = new CodePeg("yellow");
+        CodePeg peg32 = new CodePeg("blue");
+        CodePeg peg42 = new CodePeg("pink");
+
+
+        //Create a code peg combination that will be the guess
+        guess2.setPegPosition(peg12, 0);
+        guess2.setPegPosition(peg22, 1);
+        guess2.setPegPosition(peg32, 2);
+        guess2.setPegPosition(peg42, 3);
+
+        //Add the code peg to the combiantion
+        board.addCodePegCombination(guess);
+        board.addCodePegCombination(guess2);
+
+        System.out.println("PegCombination: " + guess);
+
+        //Printing out the color blind version of the decoding board
+        System.out.println(
+            "Colorblind code pegs" + myGame.decodingBoards.get(0).getColorBlindCodePegs().stream()
+                .map(Arrays::toString)
+                .collect(Collectors.joining("\n"))
+        );
+        System.out.println(
+            "Colorblind key pegs" + myGame.decodingBoards.get(0).getColorBlindKeyPegs().stream()
+                .map(Arrays::toString)
+                .collect(Collectors.joining("\n"))
+        );
+
+        //System.out.println("PegCombination: " + guess2);
+        //System.out.println("KeyPegs: " + board.getKeyPegs());
+
+
+        // Step 6: Check game equality and toString method
+        /*Game anotherGame = new Game(easy);
+        System.out.println("Games are equal: " + myGame.equals(anotherGame));
+        System.out.println("Game Details: " + myGame);*/
+    }
+
+}
